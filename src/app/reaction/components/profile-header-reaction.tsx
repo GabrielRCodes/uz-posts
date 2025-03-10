@@ -34,7 +34,7 @@ export function ProfileHeaderReaction() {
                 />
               </div>
               <div className="flex flex-col items-center gap-4 w-full">
-                <h1 className="text-2xl md:text-3xl font-bold text-center">Reações aos conteúdos</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-center">Conteúdos da comunidade</h1>
                 <div className="flex items-center gap-2">
                   <ThemeSwitcher />
                   <Button
