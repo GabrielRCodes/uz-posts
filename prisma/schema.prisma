@@ -74,3 +74,16 @@ model Post {
 
   @@map("posts")
 }
+
+model RateLimit {
+  id            String   @id @default(cuid())
+  userId        String
+  type          String   // "link" or "image"
+  counter       Int      @default(0)
+  lastActivity  DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, type])
+  @@map("rate_limits")
+}

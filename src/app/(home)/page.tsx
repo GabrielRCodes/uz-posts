@@ -75,7 +75,13 @@ export default function HomePage() {
         }),
       })
 
+      const result = await response.json()
+
       if (!response.ok) {
+        if (response.status === 429) {
+          toast.error(result.error)
+          return
+        }
         throw new Error("Failed to create post")
       }
 
@@ -121,7 +127,13 @@ export default function HomePage() {
           }),
         })
 
+        const result = await response.json()
+
         if (!response.ok) {
+          if (response.status === 429) {
+            toast.error(result.error)
+            return
+          }
           throw new Error("Failed to create post")
         }
 
@@ -202,12 +214,7 @@ export default function HomePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
                 <Button
                   variant="outline"
-                  className={cn(
-                    "h-24 border-2 transition-all duration-300",
-                    contentType === "link"
-                      ? "border-primary"
-                      : "border-input hover:border-primary"
-                  )}
+                  className="h-24 border-2 border-input hover:border-primary transition-all duration-300"
                   onClick={() => handleContentTypeSelect("link")}
                 >
                   <div className="space-y-2">
@@ -220,12 +227,7 @@ export default function HomePage() {
 
                 <Button
                   variant="outline"
-                  className={cn(
-                    "h-24 border-2 transition-all duration-300",
-                    contentType === "image"
-                      ? "border-primary"
-                      : "border-input hover:border-primary"
-                  )}
+                  className="h-24 border-2 border-input hover:border-primary transition-all duration-300"
                   onClick={() => handleContentTypeSelect("image")}
                 >
                   <div className="space-y-2">
@@ -250,6 +252,9 @@ export default function HomePage() {
                       placeholder="Digite um título para o conteúdo"
                       {...linkForm.register("title")}
                     />
+                    <div className="text-xs text-muted-foreground text-right">
+                      {linkForm.watch("title")?.length || 0}/150
+                    </div>
                     {linkForm.formState.errors.title && (
                       <p className="text-sm text-destructive">
                         {linkForm.formState.errors.title.message}
@@ -335,6 +340,9 @@ export default function HomePage() {
                       placeholder="Digite um título para a imagem"
                       {...imageForm.register("title")}
                     />
+                    <div className="text-xs text-muted-foreground text-right">
+                      {imageForm.watch("title")?.length || 0}/150
+                    </div>
                     {imageForm.formState.errors.title && (
                       <p className="text-sm text-destructive">
                         {imageForm.formState.errors.title.message}
@@ -431,7 +439,17 @@ export default function HomePage() {
             >
               <FaTwitch className="h-4 w-4" />
             </Button>
-            <ThemeSwitcher />
+            <div className="flex items-center gap-2">
+              <ManageButton />
+              <ThemeSwitcher />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => signOut()}
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </Card>
       </div>

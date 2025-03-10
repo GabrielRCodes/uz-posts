@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 export async function GET(req: Request) {
   try {
@@ -37,8 +38,17 @@ export async function POST(req: Request) {
     const session = await getServerSession(authOptions)
     const { title, contentLink, type, description } = await req.json()
 
-    if ( !session ) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Check rate limit
+    const canPost = await checkRateLimit(type as "link" | "image")
+    if (!canPost) {
+      return NextResponse.json(
+        { error: `Você atingiu o limite diário de ${type === "link" ? "10 links" : "1 imagem"}` },
+        { status: 429 }
+      )
     }
 
     const post = await prisma.post.create({
@@ -48,8 +58,8 @@ export async function POST(req: Request) {
         type,
         description,
         status: "private",
-        username: session?.user?.name ?? "",
-        email: session?.user?.email ?? "",
+        username: session.user.name ?? "",
+        email: session.user.email,
       },
     })
 

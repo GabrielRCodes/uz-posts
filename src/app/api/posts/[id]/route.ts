@@ -51,4 +51,50 @@ export async function PATCH(
       { status: 500 }
     )
   }
+}
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email: session.user.email,
+      },
+      select: {
+        permissionLevel: true,
+      },
+    })
+
+    if (!user || user.permissionLevel > 1) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
+
+    await prisma.post.delete({
+      where: {
+        id: params.id,
+      },
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error deleting post:", error)
+    return NextResponse.json(
+      { error: "Error deleting post" },
+      { status: 500 }
+    )
+  }
 } 

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { InboxIcon, LinkIcon, UserIcon, ClockIcon, CheckCircleIcon, LockIcon, ImageIcon, Share2Icon, Maximize2Icon } from "lucide-react"
+import { InboxIcon, LinkIcon, UserIcon, ClockIcon, CheckCircleIcon, LockIcon, ImageIcon, Share2Icon, Maximize2Icon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 import Image from "next/image"
 
@@ -100,6 +100,36 @@ export function PostList({ status, onTabChange }: PostListProps) {
           ? "Erro ao aprovar o conteúdo. Tente novamente."
           : "Erro ao mover o conteúdo para privado. Tente novamente."
       )
+    } finally {
+      // Remove o post da lista de processamento
+      setProcessingPosts(prev => prev.filter(id => id !== post.id))
+    }
+  }
+
+  async function handleDelete(post: Post) {
+    const previousPosts = [...posts]
+    
+    // Adiciona o post à lista de processamento
+    setProcessingPosts(prev => [...prev, post.id])
+    
+    // Atualização otimista: remove o post imediatamente
+    setPosts((prev) => prev.filter((p) => p.id !== post.id))
+    
+    // Mostra notificação de sucesso
+    toast.success("Conteúdo deletado com sucesso!")
+
+    try {
+      const response = await fetch(`/api/posts/${post.id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        throw new Error("Falha ao deletar o post")
+      }
+    } catch (error) {
+      // Em caso de erro, reverte a alteração
+      setPosts(previousPosts)
+      toast.error("Erro ao deletar o conteúdo. Tente novamente.")
     } finally {
       // Remove o post da lista de processamento
       setProcessingPosts(prev => prev.filter(id => id !== post.id))
@@ -280,6 +310,19 @@ export function PostList({ status, onTabChange }: PostListProps) {
                       </>
                     )}
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(post)}
+                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    disabled={processingPosts.includes(post.id)}
+                  >
+                    {processingPosts.includes(post.id) ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                    ) : (
+                      <Trash2Icon className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
               </div>
             </div>
