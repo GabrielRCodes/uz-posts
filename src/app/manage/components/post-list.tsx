@@ -276,7 +276,7 @@ export function PostList({ status, onTabChange }: PostListProps) {
                         className="text-sm text-blue-500 hover:underline break-all flex items-center gap-2"
                       >
                         <LinkIcon className="h-4 w-4 flex-shrink-0" />
-                        {post.contentLink}
+                        <span className="line-clamp-1">{post.contentLink}</span>
                       </a>
                     </div>
                   )}
